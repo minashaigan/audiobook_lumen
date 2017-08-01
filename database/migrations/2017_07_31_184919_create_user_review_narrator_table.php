@@ -16,7 +16,7 @@ class CreateUserReviewNarratorTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->integer('narrator_id')->unsigned();
-            $table->unique( array('user_id','narrator_id') );
+//            $table->unique( array('user_id','narrator_id') );
             $table->string('comment');
             $table->double('rate', 15, 2)->nullable();
             $table->boolean('enable')->default('0');

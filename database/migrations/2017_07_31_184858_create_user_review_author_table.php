@@ -16,7 +16,7 @@ class CreateUserReviewAuthorTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->unsigned();
             $table->integer('author_id')->unsigned();
-            $table->unique( array('user_id','author_id') );
+//            $table->unique( array('user_id','author_id') );
             $table->string('comment');
             $table->double('rate', 15, 2)->nullable();
             $table->boolean('enable')->default('0');

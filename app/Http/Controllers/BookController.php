@@ -163,47 +163,49 @@ class BookController extends Controller
             $tags = Tag::query()->where('taggable_type','App\Book')->where('tag_slug', 'like', $request->input('search'))->get();
             if (count($tags)) {
                 foreach ($tags as $tag) {
-                    $book = Book::query()->findOrFail($tag->taggable_id);
-                    $book["authors"]="";
-                    $counter=0;
-                    foreach ($book->authors()->get() as $author){
-                        if($counter)
-                            $book["authors"]=$book['authors'].",".$author->name;
-                        else
-                            $book["authors"]=$author->name;
-                        $counter++;
-                    }
-                    $book["narrators"]="";
-                    $counter=0;
-                    foreach ($book->narrators()->get() as $narrator){
-                        if($counter)
-                            $book["narrators"]=$book['narrators'].",".$narrator->name;
-                        else
-                            $book["narrators"]=$narrator->name;
-                        $counter++;
-                    }
-                    $book["genres"]="";
-                    $counter=0;
-                    foreach ($book->genres()->get() as $genre){
-                        if($counter)
-                            $book["genres"]=$book['genres'].",".$genre->name;
-                        else
-                            $book["genres"]=$genre->name;
-                        $counter++;
-                    }
-                    $rate_count=0;
-                    $rate_value=0;
-                    foreach ($book->reviews()->wherePivot('enable',1)->get() as $review){
-                        if($review->pivot->rate) {
-                            $rate_count++;
-                            $rate_value += $review->pivot->rate;
+                    $book = Book::query()->find($tag->taggable_id);
+                    if($book) {
+                        $book["authors"] = "";
+                        $counter = 0;
+                        foreach ($book->authors()->get() as $author) {
+                            if ($counter)
+                                $book["authors"] = $book['authors'] . "," . $author->name;
+                            else
+                                $book["authors"] = $author->name;
+                            $counter++;
                         }
+                        $book["narrators"] = "";
+                        $counter = 0;
+                        foreach ($book->narrators()->get() as $narrator) {
+                            if ($counter)
+                                $book["narrators"] = $book['narrators'] . "," . $narrator->name;
+                            else
+                                $book["narrators"] = $narrator->name;
+                            $counter++;
+                        }
+                        $book["genres"] = "";
+                        $counter = 0;
+                        foreach ($book->genres()->get() as $genre) {
+                            if ($counter)
+                                $book["genres"] = $book['genres'] . "," . $genre->name;
+                            else
+                                $book["genres"] = $genre->name;
+                            $counter++;
+                        }
+                        $rate_count = 0;
+                        $rate_value = 0;
+                        foreach ($book->reviews()->wherePivot('enable', 1)->get() as $review) {
+                            if ($review->pivot->rate) {
+                                $rate_count++;
+                                $rate_value += $review->pivot->rate;
+                            }
+                        }
+                        if ($rate_count == 0)
+                            $book['rate'] = 0;
+                        else
+                            $book['rate'] = $rate_value / $rate_count;
+                        $search[] = $book;
                     }
-                    if($rate_count == 0)
-                        $book['rate']=0;
-                    else
-                        $book['rate']=$rate_value/$rate_count;
-                    $search[] = $book;
                 }
             }
             $authors = Author::query()->where('name', 'like', $request->input('search'))->get();

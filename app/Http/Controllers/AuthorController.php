@@ -164,30 +164,31 @@ class AuthorController extends Controller
             $tags = Tag::query()->where('taggable_type','App\Author')->where('tag_slug', 'like', $request->input('search'))->get();
             if (count($tags)) {
                 foreach ($tags as $tag) {
-                    $author = Author::query()->findOrFail($tag->taggable_id);
-                    $author["genres"] = "";
-                    $counter = 0;
-                    foreach ($author->genres()->get() as $genre) {
-                        if ($counter)
-                            $author["genres"] = $author['genres'] . "," . $genre->name;
-                        else
-                            $author["genres"] = $genre->name;
-                        $counter++;
-                    }
-                    $rate_count = 0;
-                    $rate_value = 0;
-                    foreach ($author->reviews()->wherePivot('enable', 1)->get() as $review) {
-                        if ($review->pivot->rate) {
-                            $rate_count++;
-                            $rate_value += $review->pivot->rate;
+                    $author = Author::query()->find($tag->taggable_id);
+                    if($author) {
+                        $author["genres"] = "";
+                        $counter = 0;
+                        foreach ($author->genres()->get() as $genre) {
+                            if ($counter)
+                                $author["genres"] = $author['genres'] . "," . $genre->name;
+                            else
+                                $author["genres"] = $genre->name;
+                            $counter++;
                         }
+                        $rate_count = 0;
+                        $rate_value = 0;
+                        foreach ($author->reviews()->wherePivot('enable', 1)->get() as $review) {
+                            if ($review->pivot->rate) {
+                                $rate_count++;
+                                $rate_value += $review->pivot->rate;
+                            }
+                        }
+                        if ($rate_count == 0)
+                            $author['rate'] = 0;
+                        else
+                            $author['rate'] = $rate_value / $rate_count;
+                        $search[] = $author;
                     }
-                    if ($rate_count == 0)
-                        $author['rate'] = 0;
-                    else
-                        $author['rate'] = $rate_value / $rate_count;
-                
-                    $search[] = $author;
                 }
             }
             $genres = Genre::query()->where('name', 'like', $request->input('search'))->get();

@@ -29,6 +29,8 @@ $app->group(array('prefix' => 'api/', 'middleware' => [],'namespace' => 'App\Htt
     $app->post('users/credit/verify', ['middleware' => 'api', 'uses' => 'UserController@increaseCreditVerify']);
 // profile
     $app->get('books/get/{id}', ['middleware' => 'api', 'uses' => 'UserController@getBook']);
+    $app->get('users/get/books', ['middleware' => 'api', 'uses' => 'UserController@booksGet']);
+    $app->get('users/books', ['middleware' => 'api', 'uses' => 'UserController@booksMayLike']);
     $app->get('books/wish/{id}', ['middleware' => 'api', 'uses' => 'UserController@getWishBook']);
     $app->get('books/wish/delete/{id}', ['middleware' => 'api', 'uses' => 'UserController@deleteWantBook']);
 

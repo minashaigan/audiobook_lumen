@@ -18,6 +18,7 @@ class CreateUserHasSubscriptionTable extends Migration
             $table->integer('subscription_id')->unsigned();
             $table->integer('paid')->default(0);
             $table->dateTime('expiration_date')->nullable();
+//            $table->unique( array('user_id','subscription_id') );
             $table->timestamps();
         });
     }

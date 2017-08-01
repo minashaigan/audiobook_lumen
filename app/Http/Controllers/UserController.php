@@ -54,12 +54,11 @@ class UserController extends Controller
         $validator = Validator::make($request->all(),$rules,$messages);
         if (! $validator->fails()) {
             try {
-                User::query()->create([
-                    'name' => $request->get('name'),
-                    'email' => $request->get('email'),
-                    'phone' => $request->get('phone'),
+                User::create([
+                    'name'     => $request->get('name'),
+                    'email'    => $request->get('email'),
+                    'phone'    => $request->get('phone'),
                     'password' => bcrypt($request->get('password')),
-
                 ]);
             } catch (\Illuminate\Database\QueryException $e) {
                 return response()->json(['data' => [], 'result' => 0, 'description' => 'repetetive user', 'message' => 'Token Not Created']);
@@ -106,13 +105,15 @@ class UserController extends Controller
             $condition=['email'=> $email];
             $user=User::query()->where($condition)->first();
             if(is_null($user)){
-                $response['message']='user not exist';
+                $response['description']='user not exist';
+                $response['message']='. کاربر ثبت نشده است';
                 return response()->json($response);
             }
             else{
                 if(!password_verify(Input::get('password'),$user->password))
                 {
-                    $response['message']='password mistmatch';
+                    $response['description']='password mistmatch';
+                    $response['message']='گذرواژه اشتباه می باشد.';
                     return response()->json($response);
                 }
                 $api_code=str_random(60);
@@ -153,7 +154,7 @@ class UserController extends Controller
         if (! is_null($user)){
             $user->api_token=null;
             $user->save();
-            return response()->json(['data' => [], 'result' => 1, 'description' => 'loged out', 'message' => 'Token Not Created']);
+            return response()->json(['data' => [], 'result' => 1, 'description' => 'logging out successfully', 'message' => 'success']);
         }
         else{
             return response()->json(['data' => [], 'result' => 0, 'description' => 'authentication failed', 'message' => 'Token Not Created']);
@@ -379,45 +380,6 @@ class UserController extends Controller
         }
     }
     /**
-     * send
-     *
-     * @param $api
-     * @param $amount
-     * @param $redirect
-     * @param null $factorNumber
-     * @return mixed
-     */
-    function send($api, $amount, $redirect, $factorNumber=null) {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://pay.ir/payment/send');
-        curl_setopt($ch, CURLOPT_POSTFIELDS,"api=$api&amount=$amount&redirect=$redirect&factorNumber=$factorNumber");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $res = curl_exec($ch);
-        curl_close($ch);
-        return $res;
-    }
-
-    /**
-     * verify
-     *
-     * @param $api
-     * @param $transId
-     * @return mixed
-     */
-    public function verify($api, $transId)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'https://pay.ir/payment/verify');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, "api=$api&transId=$transId");
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        $res = curl_exec($ch);
-        curl_close($ch);
-        return $res;
-    }
-
-    /**
      * Take Subscription
      *
      * takeSubscription
@@ -542,6 +504,44 @@ class UserController extends Controller
             $response['price']=$price;
             return $response;
         }
+    }
+    /**
+     * send
+     *
+     * @param $api
+     * @param $amount
+     * @param $redirect
+     * @param null $factorNumber
+     * @return mixed
+     */
+    function send($api, $amount, $redirect, $factorNumber=null) {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://pay.ir/payment/send');
+        curl_setopt($ch, CURLOPT_POSTFIELDS,"api=$api&amount=$amount&redirect=$redirect&factorNumber=$factorNumber");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $res = curl_exec($ch);
+        curl_close($ch);
+        return $res;
+    }
+
+    /**
+     * verify
+     *
+     * @param $api
+     * @param $transId
+     * @return mixed
+     */
+    public function verify($api, $transId)
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://pay.ir/payment/verify');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, "api=$api&transId=$transId");
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        $res = curl_exec($ch);
+        curl_close($ch);
+        return $res;
     }
     /**
      * Get Book
@@ -806,16 +806,16 @@ class UserController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function changePass()
+    public function changePass(Request $request)
     {
-        $user = User::query()->where('api_token',Input::get('api_token'))->first();
+        $user = User::query()->where('api_token',$request->input('api_token'))->first();
         if($user  and Input::get('api_token')) {
             $input = Input::all();
-            if (!Input::has('oldpass') || !Input::has('newpass')) {
+            if (!$request->has('oldpass') || !$request->has('newpass')) {
                 return response()->json(['data' => [], 'result' => 0, 'description' => 'there is no information', 'message' => 'failed']);
             }
 
-            if (!password_verify(Input::get('oldpass'), $user->password))
+            if (!password_verify($request->input('oldpass'), $user->password))
                 return response()->json(['data' => [], 'result' => 0, 'description' => 'there is mismatch in password', 'message' => 'failed']);
             $rules = array(
                 'newpass' => 'required|min:6',
@@ -956,7 +956,7 @@ class UserController extends Controller
         $user = User::query()->where('api_token',$request->input('api_token'))->first();
         $image = $user->image;
         if($user and $image and $request->input('api_token')) {
-            $user->image = '';
+            $user->image = null;
             try {
                 $user->save();
             } catch (\Illuminate\Database\QueryException $e) {
@@ -988,6 +988,139 @@ class UserController extends Controller
                 return response()->json(['data' => ['errors' => $e], 'result' => 0, 'description' => 'cannot delete the user', 'message' => 'failed']);
             }
             return response()->json(['data'=>['user'=>$user],'result'=>1,'description'=>'specified user delete successfully','message'=>'success']);
+        }
+        else{
+            return response()->json(['data' => [], 'result' => 0, 'description' => 'wrong api_token ', 'message' => 'failed']);
+        }
+    }
+
+    /**
+     * Books may like
+     *
+     * according to user genres showing related books
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function booksMayLike(Request $request)
+    {
+        $search = [];
+        $user = User::query()->where('api_token',$request->input('api_token'))->first();
+        if($user and $request->input('api_token')) {
+            $genres = $user->genres()->get();
+            if (count($genres)) {
+                foreach ($genres as $genre) {
+                    $books = Book::query()->whereHas('genres', function ($query) use ($genre) {
+                        $query->where('genre_id', $genre->id);
+                    })->distinct()->get();
+                    foreach ($books as $book) {
+                        $book["authors"]="";
+                        $counter=0;
+                        foreach ($book->authors()->get() as $author){
+                            if($counter)
+                                $book["authors"]=$book['authors'].",".$author->name;
+                            else
+                                $book["authors"]=$author->name;
+                            $counter++;
+                        }
+                        $book["narrators"]="";
+                        $counter=0;
+                        foreach ($book->narrators()->get() as $narrator){
+                            if($counter)
+                                $book["narrators"]=$book['narrators'].",".$narrator->name;
+                            else
+                                $book["narrators"]=$narrator->name;
+                            $counter++;
+                        }
+                        $book["genres"]="";
+                        $counter=0;
+                        foreach ($book->genres()->get() as $bookgenre){
+                            if($counter)
+                                $book["genres"]=$book['genres'].",".$bookgenre->name;
+                            else
+                                $book["genres"]=$bookgenre->name;
+                            $counter++;
+                        }
+                        $rate_count=0;
+                        $rate_value=0;
+                        foreach ($book->reviews()->wherePivot('enable',1)->get() as $review){
+                            if($review->pivot->rate) {
+                                $rate_count++;
+                                $rate_value += $review->pivot->rate;
+                            }
+                        }
+                        if($rate_count == 0)
+                            $book['rate']=0;
+                        else
+                            $book['rate']=$rate_value/$rate_count;
+                    }
+                    foreach ($books as $book)
+                        $search[] = $book;
+                }
+            }
+            return response()->json(['data'=>['books'=>array_unique($search)],'result'=>1,'description'=>'specified user delete successfully','message'=>'success']);
+        }
+        else{
+            return response()->json(['data' => [], 'result' => 0, 'description' => 'wrong api_token ', 'message' => 'failed']);
+        }
+    }
+    /**
+     * Books got
+     *
+     * showing all books user get by subscription
+     *
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function booksGet(Request $request)
+    {
+        $search = [];
+        $user = User::query()->where('api_token',$request->input('api_token'))->first();
+        if($user and $request->input('api_token')) {
+            $books = $user->books()->get();
+            foreach ($books as $book) {
+                $book["authors"] = "";
+                $counter = 0;
+                foreach ($book->authors()->get() as $author) {
+                    if ($counter)
+                        $book["authors"] = $book['authors'] . "," . $author->name;
+                    else
+                        $book["authors"] = $author->name;
+                    $counter++;
+                }
+                $book["narrators"] = "";
+                $counter = 0;
+                foreach ($book->narrators()->get() as $narrator) {
+                    if ($counter)
+                        $book["narrators"] = $book['narrators'] . "," . $narrator->name;
+                    else
+                        $book["narrators"] = $narrator->name;
+                    $counter++;
+                }
+                $book["genres"] = "";
+                $counter = 0;
+                foreach ($book->genres()->get() as $bookgenre) {
+                    if ($counter)
+                        $book["genres"] = $book['genres'] . "," . $bookgenre->name;
+                    else
+                        $book["genres"] = $bookgenre->name;
+                    $counter++;
+                }
+                $rate_count = 0;
+                $rate_value = 0;
+                foreach ($book->reviews()->wherePivot('enable', 1)->get() as $review) {
+                    if ($review->pivot->rate) {
+                        $rate_count++;
+                        $rate_value += $review->pivot->rate;
+                    }
+                }
+                if ($rate_count == 0)
+                    $book['rate'] = 0;
+                else
+                    $book['rate'] = $rate_value / $rate_count;
+                $search[] = $book;
+            }
+            return response()->json(['data'=>['books'=>array_unique($search)],'result'=>1,'description'=>'specified user delete successfully','message'=>'success']);
         }
         else{
             return response()->json(['data' => [], 'result' => 0, 'description' => 'wrong api_token ', 'message' => 'failed']);

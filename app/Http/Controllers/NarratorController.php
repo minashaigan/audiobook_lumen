@@ -167,31 +167,31 @@ class NarratorController extends Controller
             $tags = Tag::query()->where('taggable_type','App\Narrator')->where('tag_slug', 'like', $request->input('search'))->get();
             if (count($tags)) {
                 foreach ($tags as $tag) {
-                    $narrator = Narrator::query()->findOrFail($tag->taggable_id);
-                
-                    $narrator["genres"] = "";
-                    $counter = 0;
-                    foreach ($narrator->genres()->get() as $genre) {
-                        if ($counter)
-                            $narrator["genres"] = $narrator['genres'] . "," . $genre->name;
-                        else
-                            $narrator["genres"] = $genre->name;
-                        $counter++;
-                    }
-                    $rate_count = 0;
-                    $rate_value = 0;
-                    foreach ($narrator->reviews()->wherePivot('enable', 1)->get() as $review) {
-                        if ($review->pivot->rate) {
-                            $rate_count++;
-                            $rate_value += $review->pivot->rate;
+                    $narrator = Narrator::query()->find($tag->taggable_id);
+                    if($narrator) {
+                        $narrator["genres"] = "";
+                        $counter = 0;
+                        foreach ($narrator->genres()->get() as $genre) {
+                            if ($counter)
+                                $narrator["genres"] = $narrator['genres'] . "," . $genre->name;
+                            else
+                                $narrator["genres"] = $genre->name;
+                            $counter++;
                         }
+                        $rate_count = 0;
+                        $rate_value = 0;
+                        foreach ($narrator->reviews()->wherePivot('enable', 1)->get() as $review) {
+                            if ($review->pivot->rate) {
+                                $rate_count++;
+                                $rate_value += $review->pivot->rate;
+                            }
+                        }
+                        if ($rate_count == 0)
+                            $narrator['rate'] = 0;
+                        else
+                            $narrator['rate'] = $rate_value / $rate_count;
+                        $search[] = $narrator;
                     }
-                    if ($rate_count == 0)
-                        $narrator['rate'] = 0;
-                    else
-                        $narrator['rate'] = $rate_value / $rate_count;
-
-                    $search[] = $narrator;
                 }
             }
             $genres = Genre::query()->where('name', 'like', $request->input('search'))->get();
