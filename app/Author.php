@@ -4,6 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Conner\Tagging\Taggable;
+
 class Author extends Model
 {
     use Taggable;
