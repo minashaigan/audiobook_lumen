@@ -54,13 +54,6 @@ class Book extends Model
         return $this->belongsToMany('App\Narrator', 'book_narrator', 'book_id', 'narrator_id');
     }
     /**
-     * The tags of the book.
-     */
-    public function tags()
-    {
-        return $this->belongsToMany('App\Tag', 'book_tag', 'book_id', 'tag_id');
-    }
-    /**
      * The genres of the book.
      */
     public function genres()

@@ -38,11 +38,4 @@ class Author extends Model
         return $this->belongsToMany('App\User', 'user_review_author', 'author_id', 'user_id')
             ->withPivot('comment','rate','enable');
     }
-    /**
-     * The tags of the author.
-     */
-    public function tags()
-    {
-        return $this->belongsToMany('App\Tag', 'author_tag', 'author_id', 'tag_id');
-    }
 }

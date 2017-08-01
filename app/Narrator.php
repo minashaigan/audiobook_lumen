@@ -38,11 +38,4 @@ class Narrator extends Model
         return $this->belongsToMany('App\User', 'user_review_narrator', 'narrator_id', 'user_id')
             ->withPivot('comment','rate','enable');
     }
-    /**
-     * The tags of the author.
-     */
-    public function tags()
-    {
-        return $this->belongsToMany('App\Tag', 'narrator_tag', 'narrator_id', 'tag_id');
-    }
 }
