@@ -25,7 +25,7 @@ $app->group(array('prefix' => 'api/', 'middleware' => [],'namespace' => 'App\Htt
     $app->get('subscriptions/buy/{id}', ['middleware' => 'api', 'uses' => 'UserController@buySubscription']);
     $app->post('subscriptions/verify', ['middleware' => 'api', 'uses' => 'UserController@buySubscriptionVerify']);
 //credit
-    $app->get('users/credit/{id}', ['middleware' => 'api', 'uses' => 'UserController@increaseCredit']);
+    $app->get('users/credit', ['middleware' => 'api', 'uses' => 'UserController@increaseCredit']);
     $app->post('users/credit/verify', ['middleware' => 'api', 'uses' => 'UserController@increaseCreditVerify']);
 // profile
     $app->get('books/get/{id}', ['middleware' => 'api', 'uses' => 'UserController@getBook']);

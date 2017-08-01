@@ -203,7 +203,7 @@ class UserController extends Controller
             }
             $amount = $price * 10;
             $api = 'ad19e8fe996faac2f3cf7242b08972b6';
-            $redirect = 'http://vestacamp.vestaak.com/subscriptions/verify';
+            $redirect = 'http://localhost:8000/api/subscriptions/verify';
             $result = $this->send($api, $amount, $redirect);
             $result = json_decode($result);
             if ($result->status) {
@@ -291,7 +291,7 @@ class UserController extends Controller
         if($user and $price>0){
             $amount = $price * 10;
             $api = 'ad19e8fe996faac2f3cf7242b08972b6';
-            $redirect = 'http://vestacamp.vestaak.com/users/credit/verify';
+            $redirect = 'http://localhost:8000/api/users/credit/verify';
             $result = $this->send($api, $amount, $redirect);
             $result = json_decode($result);
             if ($result->status) {
